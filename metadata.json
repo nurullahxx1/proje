@@ -1,0 +1,6 @@
+{
+  "name": "nurullah1.1 · Kişisel Çalışma & Eğitim Takipçisi",
+  "description": "30 haftalık kişisel eğitim ve çalışma takip sistemi. İlerleme grafiği, haftalık çalışma kartları, çalışma arama ve kişisel profil alanı.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

@@ -12,6 +12,15 @@ interface TrackerContextType {
   setSelectedWeek: (week: number | null) => void;
   theme: 'light' | 'dark';
   toggleTheme: () => void;
+
+  // Admin / Visitor role & authorization
+  isAdmin: boolean;
+  isAdminModalOpen: boolean;
+  adminPromptReason: string;
+  openAdminLogin: (reason?: string) => void;
+  closeAdminLogin: () => void;
+  loginAdmin: (password: string, remember?: boolean) => boolean;
+  logoutAdmin: () => void;
   
   // Toast notifications
   toasts: ToastMessage[];
@@ -19,7 +28,7 @@ interface TrackerContextType {
   dismissToast: (id: string) => void;
 
   // Task actions
-  addTask: (task: Omit<StudyTask, 'id' | 'createdAt'>) => StudyTask;
+  addTask: (task: Omit<StudyTask, 'id' | 'createdAt'>) => StudyTask | null;
   updateTask: (task: StudyTask) => void;
   deleteTask: (id: string) => void;
   toggleTaskStatus: (id: string) => void;
@@ -171,8 +180,74 @@ export const TrackerProvider: React.FC<{ children: ReactNode }> = ({ children })
     }, 4000);
   }, [dismissToast]);
 
+  // Admin & Authorization state
+  const [isAdmin, setIsAdmin] = useState<boolean>(() => {
+    try {
+      return (
+        localStorage.getItem('calisma_tracker_admin_auth') === 'true' ||
+        sessionStorage.getItem('calisma_tracker_admin_auth') === 'true' ||
+        localStorage.getItem('nurullah1_authenticated') === 'true' ||
+        sessionStorage.getItem('nurullah1_authenticated') === 'true'
+      );
+    } catch {
+      return false;
+    }
+  });
+
+  const [isAdminModalOpen, setIsAdminModalOpen] = useState(false);
+  const [adminPromptReason, setAdminPromptReason] = useState('');
+
+  const openAdminLogin = useCallback((reason?: string) => {
+    setAdminPromptReason(reason || 'Yeni çalışma eklemek ve sitede değişiklik yapmak için lütfen yönetici şifrenizi giriniz.');
+    setIsAdminModalOpen(true);
+  }, []);
+
+  const closeAdminLogin = useCallback(() => {
+    setIsAdminModalOpen(false);
+    setAdminPromptReason('');
+  }, []);
+
+  const loginAdmin = useCallback((enteredPassword: string, remember: boolean = true): boolean => {
+    const trimmed = enteredPassword.trim();
+    if (trimmed === 'nurullah1') {
+      try {
+        if (remember) {
+          localStorage.setItem('calisma_tracker_admin_auth', 'true');
+        } else {
+          sessionStorage.setItem('calisma_tracker_admin_auth', 'true');
+        }
+      } catch {
+        // ignore
+      }
+      setIsAdmin(true);
+      setIsAdminModalOpen(false);
+      setAdminPromptReason('');
+      showToast('Yönetici Girişi Başarılı', 'Yönetici modu aktif. Artık tüm çalışmaları düzenleyebilir ve yenilerini ekleyebilirsiniz.', 'success');
+      return true;
+    }
+    return false;
+  }, [showToast]);
+
+  const logoutAdmin = useCallback(() => {
+    try {
+      localStorage.removeItem('calisma_tracker_admin_auth');
+      sessionStorage.removeItem('calisma_tracker_admin_auth');
+      localStorage.removeItem('nurullah1_authenticated');
+      sessionStorage.removeItem('nurullah1_authenticated');
+    } catch {
+      // ignore
+    }
+    setIsAdmin(false);
+    showToast('Oturum Kapatıldı', 'Ziyaretçi moduna geçildi. İçerikler salt okunur olarak görüntülenebilir.', 'info');
+  }, [showToast]);
+
   // Task methods
-  const addTask = (taskData: Omit<StudyTask, 'id' | 'createdAt'>): StudyTask => {
+  const addTask = (taskData: Omit<StudyTask, 'id' | 'createdAt'>): StudyTask | null => {
+    if (!isAdmin) {
+      openAdminLogin('Yeni çalışma eklemek için lütfen yönetici girişi yapınız.');
+      showToast('Yetki Gerekli', 'Yeni çalışma eklemek için yönetici girişi yapmalısınız.', 'error');
+      return null;
+    }
     const newTask: StudyTask = {
       ...taskData,
       id: `task-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`,
@@ -184,17 +259,32 @@ export const TrackerProvider: React.FC<{ children: ReactNode }> = ({ children })
   };
 
   const updateTask = (updatedTask: StudyTask) => {
+    if (!isAdmin) {
+      openAdminLogin('Çalışmayı düzenlemek için lütfen yönetici girişi yapınız.');
+      showToast('Yetki Gerekli', 'Çalışma düzenlemek için yönetici girişi yapmalısınız.', 'error');
+      return;
+    }
     setTasks(prev => prev.map(t => (t.id === updatedTask.id ? updatedTask : t)));
     showToast('Çalışma Güncellendi', `"${updatedTask.title}" güncellendi.`, 'success');
   };
 
   const deleteTask = (id: string) => {
+    if (!isAdmin) {
+      openAdminLogin('Çalışmayı silmek için lütfen yönetici girişi yapınız.');
+      showToast('Yetki Gerekli', 'Çalışma silmek için yönetici girişi yapmalısınız.', 'error');
+      return;
+    }
     const taskToDelete = tasks.find(t => t.id === id);
     setTasks(prev => prev.filter(t => t.id !== id));
     showToast('Çalışma Silindi', taskToDelete ? `"${taskToDelete.title}" kaldırıldı.` : 'Çalışma silindi.', 'info');
   };
 
   const toggleTaskStatus = (id: string) => {
+    if (!isAdmin) {
+      openAdminLogin('Çalışma durumunu değiştirmek için lütfen yönetici girişi yapınız.');
+      showToast('Yetki Gerekli', 'Çalışma durumunu değiştirmek için yönetici girişi yapmalısınız.', 'info');
+      return;
+    }
     setTasks(prev =>
       prev.map(t => {
         if (t.id !== id) return t;
@@ -210,6 +300,11 @@ export const TrackerProvider: React.FC<{ children: ReactNode }> = ({ children })
 
   // Week methods
   const updateWeek = (weekNumber: number, data: Partial<WeekMeta>) => {
+    if (!isAdmin) {
+      openAdminLogin('Hafta bilgilerini ve hedeflerini düzenlemek için yönetici girişi yapınız.');
+      showToast('Yetki Gerekli', 'Hafta düzenlemek için yönetici girişi yapmalısınız.', 'error');
+      return;
+    }
     setWeeks(prev =>
       prev.map(w => (w.weekNumber === weekNumber ? { ...w, ...data } : w))
     );
@@ -243,11 +338,21 @@ export const TrackerProvider: React.FC<{ children: ReactNode }> = ({ children })
 
   // Profile methods
   const updateProfile = (data: Partial<UserProfile>) => {
+    if (!isAdmin) {
+      openAdminLogin('Profili düzenlemek için lütfen yönetici girişi yapınız.');
+      showToast('Yetki Gerekli', 'Profil düzenlemek için yönetici girişi yapmalısınız.', 'error');
+      return;
+    }
     setProfile(prev => ({ ...prev, ...data }));
     showToast('Profil Güncellendi', 'Kişisel profil bilgileriniz başarıyla güncellendi.', 'success');
   };
 
   const addTechnology = (tech: Omit<Technology, 'id'>) => {
+    if (!isAdmin) {
+      openAdminLogin('Teknoloji eklemek için lütfen yönetici girişi yapınız.');
+      showToast('Yetki Gerekli', 'Yetkinlik eklemek için yönetici girişi yapmalısınız.', 'error');
+      return;
+    }
     const newTech: Technology = {
       ...tech,
       id: `tech-${Date.now()}`
@@ -260,6 +365,11 @@ export const TrackerProvider: React.FC<{ children: ReactNode }> = ({ children })
   };
 
   const removeTechnology = (id: string) => {
+    if (!isAdmin) {
+      openAdminLogin('Teknoloji silmek için lütfen yönetici girişi yapınız.');
+      showToast('Yetki Gerekli', 'Yetkinlik silmek için yönetici girişi yapmalısınız.', 'error');
+      return;
+    }
     const tech = profile.technologies.find(t => t.id === id);
     setProfile(prev => ({
       ...prev,
@@ -271,7 +381,7 @@ export const TrackerProvider: React.FC<{ children: ReactNode }> = ({ children })
   // Backup / Reset
   const exportData = () => {
     const data = {
-      app: 'nurullah1.1',
+      app: 'calisma-takip',
       version: 2,
       exportedAt: new Date().toISOString(),
       tasks,
@@ -283,7 +393,7 @@ export const TrackerProvider: React.FC<{ children: ReactNode }> = ({ children })
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
-    link.download = `nurullah1.1-yedek-${new Date().toISOString().slice(0, 10)}.json`;
+    link.download = `calisma-takip-yedek-${new Date().toISOString().slice(0, 10)}.json`;
     link.click();
     URL.revokeObjectURL(url);
     showToast('Yedek İndirildi', 'Verileriniz JSON dosyası olarak kaydedildi.', 'success');
@@ -313,13 +423,18 @@ export const TrackerProvider: React.FC<{ children: ReactNode }> = ({ children })
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
-    link.download = `nurullah1.1-calismalar-${new Date().toISOString().slice(0, 10)}.csv`;
+    link.download = `calisma-kayitlari-${new Date().toISOString().slice(0, 10)}.csv`;
     link.click();
     URL.revokeObjectURL(url);
     showToast('Excel/CSV İndirildi', 'Çalışmalarınız CSV formatında başarıyla kaydedildi.', 'success');
   };
 
   const importData = (jsonStr: string): boolean => {
+    if (!isAdmin) {
+      openAdminLogin('Yedek yüklemek ve verileri değiştirmek için yönetici girişi yapınız.');
+      showToast('Yetki Gerekli', 'Yedek yüklemek için yönetici girişi yapmalısınız.', 'error');
+      return false;
+    }
     try {
       const parsed = JSON.parse(jsonStr);
       if (Array.isArray(parsed.tasks)) {
@@ -340,6 +455,11 @@ export const TrackerProvider: React.FC<{ children: ReactNode }> = ({ children })
   };
 
   const resetToDefaults = () => {
+    if (!isAdmin) {
+      openAdminLogin('Sistemi sıfırlamak için yönetici girişi yapınız.');
+      showToast('Yetki Gerekli', 'Sıfırlama yapmak için yönetici girişi yapmalısınız.', 'error');
+      return;
+    }
     setTasks(INITIAL_TASKS);
     setWeeks(INITIAL_WEEKS);
     setProfile(INITIAL_PROFILE);
@@ -525,6 +645,13 @@ export const TrackerProvider: React.FC<{ children: ReactNode }> = ({ children })
         setSelectedWeek,
         theme,
         toggleTheme,
+        isAdmin,
+        isAdminModalOpen,
+        adminPromptReason,
+        openAdminLogin,
+        closeAdminLogin,
+        loginAdmin,
+        logoutAdmin,
         toasts,
         showToast,
         dismissToast,

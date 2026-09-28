@@ -14,15 +14,15 @@ import { TaskModal } from './components/TaskModal';
 import { AllTasksView } from './components/AllTasksView';
 import { AboutView } from './components/AboutView';
 import { StudyTimerModal } from './components/StudyTimerModal';
-import { AuthGate } from './components/AuthGate';
+import { AdminLoginModal } from './components/AdminLoginModal';
 import { ToastContainer } from './components/ToastContainer';
 import { InsightsView } from './components/InsightsView';
 import { CommandPalette } from './components/CommandPalette';
 import { PrintReportModal } from './components/PrintReportModal';
 import { StudyTask } from './types/tracker';
-import { Search, Filter, Layers, CheckCircle2, BookOpen, BarChart3, User, Calendar } from 'lucide-react';
+import { Search, Filter, Layers, CheckCircle2, BookOpen, BarChart3, User, Calendar, Shield } from 'lucide-react';
 
-function TrackerApp({ onLock }: { onLock: () => void }) {
+function TrackerApp() {
   const {
     weeks,
     activeTab,
@@ -30,6 +30,9 @@ function TrackerApp({ onLock }: { onLock: () => void }) {
     selectedWeek,
     setSelectedWeek,
     activeWeekNumber,
+    isAdmin,
+    openAdminLogin,
+    logoutAdmin,
     toasts,
     dismissToast
   } = useTracker();
@@ -47,18 +50,30 @@ function TrackerApp({ onLock }: { onLock: () => void }) {
   const [overviewPhaseFilter, setOverviewPhaseFilter] = useState<'all' | 'phase1' | 'phase2' | 'phase3'>('all');
 
   const handleOpenNewTask = (weekNumber?: number) => {
+    if (!isAdmin) {
+      openAdminLogin('Yeni çalışma eklemek için lütfen yönetici girişi yapınız.');
+      return;
+    }
     setTaskToEdit(null);
     setModalDefaultWeek(weekNumber || selectedWeek || activeWeekNumber || 1);
     setIsTaskModalOpen(true);
   };
 
   const handleEditTask = (task?: StudyTask, defaultWeek?: number) => {
+    if (!isAdmin) {
+      openAdminLogin('Çalışmayı düzenlemek için lütfen yönetici girişi yapınız.');
+      return;
+    }
     setTaskToEdit(task || null);
     setModalDefaultWeek(defaultWeek || task?.weekNumber || 1);
     setIsTaskModalOpen(true);
   };
 
   const handleLogFromTimer = (durationHours: number, targetWeek: number) => {
+    if (!isAdmin) {
+      openAdminLogin('Zamanlayıcı çalışmasını kaydetmek için lütfen yönetici girişi yapınız.');
+      return;
+    }
     setTaskToEdit(null);
     setModalDefaultWeek(targetWeek);
     setIsTaskModalOpen(true);
@@ -114,11 +129,29 @@ function TrackerApp({ onLock }: { onLock: () => void }) {
         onOpenNewTask={() => handleOpenNewTask()}
         onOpenTimer={() => setIsTimerOpen(true)}
         onOpenCommandPalette={() => setIsCommandPaletteOpen(true)}
-        onLock={onLock}
+        onLock={isAdmin ? logoutAdmin : () => openAdminLogin()}
       />
 
       {/* Main Viewport */}
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 pb-20 sm:pb-8">
+        {/* Visitor Mode Banner (When not in admin mode) */}
+        {!isAdmin && (
+          <div className="mb-6 p-3.5 sm:p-4 rounded-xl border border-stone-200 dark:border-stone-800 bg-white/80 dark:bg-stone-900/80 backdrop-blur-xs flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs shadow-2xs">
+            <div className="flex items-start sm:items-center gap-2.5 text-stone-600 dark:text-stone-300">
+              <span className="w-2 h-2 rounded-full bg-amber-500 shrink-0 mt-1 sm:mt-0" />
+              <span>
+                <strong className="font-semibold text-stone-900 dark:text-stone-100">Ziyaretçi Modu (Salt Okunur):</strong> Sitedeki tüm çalışmaları ve haftalık müfredatı serbestçe inceleyebilirsiniz. Değişiklik yapmak veya yeni çalışma eklemek için lütfen sağ üstten <strong>Admin Girişi</strong> yapınız.
+              </span>
+            </div>
+            <button
+              onClick={() => openAdminLogin('Yeni çalışma eklemek ve düzenleme yapmak için yönetici girişi yapınız.')}
+              className="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 font-semibold text-stone-800 dark:text-stone-200 bg-stone-100 hover:bg-stone-200 dark:bg-stone-800 dark:hover:bg-stone-700 border border-stone-300/80 dark:border-stone-700 rounded-lg transition-colors shrink-0"
+            >
+              <Shield className="w-3.5 h-3.5 text-stone-600 dark:text-stone-400" />
+              <span>Admin Girişi Yap</span>
+            </button>
+          </div>
+        )}
         {activeTab === 'overview' && (
           <div className="space-y-8">
             {/* Welcome & Stats Banner */}
@@ -253,6 +286,9 @@ function TrackerApp({ onLock }: { onLock: () => void }) {
         defaultWeek={selectedWeek || activeWeekNumber || 1}
       />
 
+      {/* Admin Login Modal */}
+      <AdminLoginModal />
+
       {/* Command Palette */}
       <CommandPalette
         isOpen={isCommandPaletteOpen}
@@ -262,7 +298,7 @@ function TrackerApp({ onLock }: { onLock: () => void }) {
         onSelectWeek={(num) => setSelectedWeek(num)}
         onSelectTask={(task) => handleEditTask(task, task.weekNumber)}
         onOpenPrintReport={() => setIsPrintReportOpen(true)}
-        onLock={onLock}
+        onLock={isAdmin ? logoutAdmin : () => openAdminLogin()}
       />
 
       {/* Printable Report Modal */}
@@ -275,7 +311,7 @@ function TrackerApp({ onLock }: { onLock: () => void }) {
       <footer className="mt-auto border-t border-stone-200 dark:border-stone-800 py-6 text-xs text-stone-500 dark:text-stone-400">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-3 text-center sm:text-left">
           <div className="flex items-center gap-2">
-            <span className="font-semibold text-stone-700 dark:text-stone-300">nurullah1.1</span>
+            <span className="font-semibold text-stone-700 dark:text-stone-300">Çalışma Takipçisi</span>
             <span aria-hidden="true">·</span>
             <span>30 Haftalık Kişisel Eğitim &amp; Çalışma Takip Sistemi</span>
             <span aria-hidden="true">·</span>
@@ -355,26 +391,9 @@ function TrackerApp({ onLock }: { onLock: () => void }) {
 }
 
 export default function App() {
-  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(() => {
-    return (
-      localStorage.getItem('nurullah1_authenticated') === 'true' ||
-      sessionStorage.getItem('nurullah1_authenticated') === 'true'
-    );
-  });
-
-  const handleLock = () => {
-    localStorage.removeItem('nurullah1_authenticated');
-    sessionStorage.removeItem('nurullah1_authenticated');
-    setIsAuthenticated(false);
-  };
-
-  if (!isAuthenticated) {
-    return <AuthGate onAuthenticated={() => setIsAuthenticated(true)} />;
-  }
-
   return (
     <TrackerProvider>
-      <TrackerApp onLock={handleLock} />
+      <TrackerApp />
     </TrackerProvider>
   );
 }

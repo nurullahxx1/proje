@@ -97,7 +97,7 @@ export const PrintReportModal: React.FC<PrintReportModalProps> = ({ isOpen, onCl
 
             <div className="text-left sm:text-right text-xs text-stone-500 font-mono">
               <p>Rapor Tarihi: {new Date().toLocaleDateString('tr-TR')}</p>
-              <p className="font-semibold text-stone-900 mt-1">nurullah1.1 Sistemi</p>
+              <p className="font-semibold text-stone-900 mt-1">Eğitim &amp; Çalışma Takip Sistemi</p>
             </div>
           </div>
 
@@ -184,7 +184,7 @@ export const PrintReportModal: React.FC<PrintReportModalProps> = ({ isOpen, onCl
 
           {/* Footer Note */}
           <div className="mt-12 pt-6 border-t border-stone-200 text-center text-xs text-stone-400 font-mono">
-            nurullah1.1 · 30 Haftalık Kişisel Eğitim &amp; Çalışma Takip Sistemi · Tüm hakları saklıdır.
+            30 Haftalık Kişisel Eğitim &amp; Çalışma Takip Sistemi · Tüm hakları saklıdır.
           </div>
         </div>
       </div>

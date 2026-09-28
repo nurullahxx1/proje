@@ -1,6 +1,6 @@
 import React from 'react';
 import { useTracker } from '../context/TrackerContext';
-import { Plus, Sun, Moon, Timer, Lock, Search, BarChart3 } from 'lucide-react';
+import { Plus, Sun, Moon, Timer, Search, Shield, LogOut, Lock } from 'lucide-react';
 
 interface NavbarProps {
   onOpenNewTask: () => void;
@@ -10,7 +10,24 @@ interface NavbarProps {
 }
 
 export const Navbar: React.FC<NavbarProps> = ({ onOpenNewTask, onOpenTimer, onOpenCommandPalette, onLock }) => {
-  const { activeTab, setActiveTab, theme, toggleTheme, completedTasks, totalTasks } = useTracker();
+  const {
+    activeTab,
+    setActiveTab,
+    theme,
+    toggleTheme,
+    totalTasks,
+    isAdmin,
+    openAdminLogin,
+    logoutAdmin
+  } = useTracker();
+
+  const handleNewTaskClick = () => {
+    if (!isAdmin) {
+      openAdminLogin('Yeni çalışma eklemek için lütfen yönetici girişi yapınız.');
+      return;
+    }
+    onOpenNewTask();
+  };
 
   return (
     <header className="sticky top-0 z-40 w-full border-b border-stone-200 dark:border-stone-800 bg-stone-50/90 dark:bg-stone-950/90 backdrop-blur-md">
@@ -21,9 +38,9 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenNewTask, onOpenTimer, onOp
             onClick={() => setActiveTab('overview')}
             className="text-left font-bold text-lg sm:text-xl tracking-tight text-stone-900 dark:text-stone-100 hover:opacity-85 transition-opacity flex items-baseline gap-1.5"
           >
-            <span>nurullah1.1</span>
+            <span>Çalışma Takipçisi</span>
             <span className="font-normal text-stone-500 dark:text-stone-400 text-xs hidden md:inline">
-              · Kişisel Çalışma Takipçisi
+              · 30 Haftalık Takip Sistemi
             </span>
           </button>
 
@@ -94,7 +111,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenNewTask, onOpenTimer, onOp
         </nav>
 
         {/* Zone 3: Actions */}
-        <div className="flex items-center gap-1.5 sm:gap-2.5">
+        <div className="flex items-center gap-1.5 sm:gap-2">
           {/* Mobile search button */}
           {onOpenCommandPalette && (
             <button
@@ -126,21 +143,39 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenNewTask, onOpenTimer, onOp
             {theme === 'dark' ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
           </button>
 
-          {/* Lock Screen / Logout */}
-          {onLock && (
+          {/* Admin Status / Login & Logout */}
+          {isAdmin ? (
+            <div className="flex items-center gap-1.5 pl-1">
+              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-semibold rounded-lg bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-500/20">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                <span className="hidden sm:inline">Admin Modu</span>
+                <span className="sm:hidden">Admin</span>
+              </span>
+              <button
+                onClick={logoutAdmin}
+                title="Yönetici Oturumunu Kapat (Ziyaretçi moduna dön)"
+                aria-label="Yönetici Oturumunu Kapat"
+                className="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-medium text-stone-600 dark:text-stone-400 hover:text-stone-900 dark:hover:text-stone-100 hover:bg-stone-200/60 dark:hover:bg-stone-800 rounded-lg transition-colors"
+              >
+                <LogOut className="w-3.5 h-3.5" />
+                <span className="hidden md:inline">Çıkış</span>
+              </button>
+            </div>
+          ) : (
             <button
-              onClick={onLock}
-              title="Ekranı Kilitle / Çıkış Yap"
-              aria-label="Ekranı Kilitle"
-              className="p-2 text-stone-500 hover:text-stone-800 dark:text-stone-400 dark:hover:text-stone-200 hover:bg-stone-200/60 dark:hover:bg-stone-800 rounded-lg transition-colors"
+              onClick={() => openAdminLogin('Sitede düzenleme yapmak ve yeni çalışma eklemek için yönetici girişi yapınız.')}
+              title="Yönetici Girişi (İçerik düzenleme yetkisi)"
+              className="inline-flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 text-xs font-semibold text-stone-800 dark:text-stone-200 bg-stone-200/70 hover:bg-stone-200 dark:bg-stone-800 dark:hover:bg-stone-700 border border-stone-300/70 dark:border-stone-700 rounded-lg transition-colors shadow-2xs"
             >
-              <Lock className="w-4 h-4" />
+              <Shield className="w-3.5 h-3.5 text-stone-600 dark:text-stone-400" />
+              <span>Admin Girişi</span>
             </button>
           )}
 
           {/* New Study Button */}
           <button
-            onClick={onOpenNewTask}
+            onClick={handleNewTaskClick}
+            title={isAdmin ? 'Yeni Çalışma Ekle' : 'Çalışma eklemek için yönetici girişi yapın'}
             className="inline-flex items-center gap-1.5 px-3 sm:px-4 py-2 text-xs sm:text-sm font-medium text-white bg-stone-900 dark:bg-stone-100 dark:text-stone-900 rounded-lg hover:bg-stone-800 dark:hover:bg-stone-200 transition-colors shadow-xs"
           >
             <Plus className="w-4 h-4" />
@@ -152,3 +187,4 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenNewTask, onOpenTimer, onOp
     </header>
   );
 };
+

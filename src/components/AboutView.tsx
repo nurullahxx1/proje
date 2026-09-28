@@ -5,7 +5,21 @@ import { formatExternalUrl } from '../utils/helpers';
 import { Edit3, Plus, Trash2, Github, Linkedin, Globe, Mail, Download, Upload, RotateCcw, Check, Sparkles, User, Code2, Database } from 'lucide-react';
 
 export const AboutView: React.FC = () => {
-  const { profile, updateProfile, addTechnology, removeTechnology, exportData, importData, resetToDefaults, loadSampleData, completedTasks, completedWeeksCount, totalHours } = useTracker();
+  const {
+    profile,
+    updateProfile,
+    addTechnology,
+    removeTechnology,
+    exportData,
+    importData,
+    resetToDefaults,
+    loadSampleData,
+    completedTasks,
+    completedWeeksCount,
+    totalHours,
+    isAdmin,
+    openAdminLogin
+  } = useTracker();
 
   // Profile Edit modal
   const [isEditingProfile, setIsEditingProfile] = useState(false);
@@ -128,6 +142,10 @@ export const AboutView: React.FC = () => {
 
               <button
                 onClick={() => {
+                  if (!isAdmin) {
+                    openAdminLogin('Profili düzenlemek için lütfen yönetici girişi yapınız.');
+                    return;
+                  }
                   setName(profile.name);
                   setRole(profile.role);
                   setBio(profile.bio);
@@ -139,6 +157,7 @@ export const AboutView: React.FC = () => {
                   setEmail(profile.socialLinks?.email || '');
                   setIsEditingProfile(true);
                 }}
+                title={isAdmin ? "Profili Düzenle" : "Profili düzenlemek için yönetici girişi gereklidir"}
                 className="px-3.5 py-1.5 text-xs font-medium text-stone-700 dark:text-stone-300 bg-stone-100 dark:bg-stone-800 hover:bg-stone-200 dark:hover:bg-stone-700 rounded-lg transition-colors flex items-center gap-1.5"
               >
                 <Edit3 className="w-3.5 h-3.5" />
@@ -223,7 +242,14 @@ export const AboutView: React.FC = () => {
           </div>
 
           <button
-            onClick={() => setIsAddingTech(true)}
+            onClick={() => {
+              if (!isAdmin) {
+                openAdminLogin('Teknoloji ve yetkinlik eklemek için lütfen yönetici girişi yapınız.');
+                return;
+              }
+              setIsAddingTech(true);
+            }}
+            title={isAdmin ? "Yeni Teknoloji Ekle" : "Teknoloji eklemek için yönetici girişi yapınız"}
             className="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-white bg-stone-900 dark:bg-stone-100 dark:text-stone-900 rounded-lg hover:bg-stone-800 dark:hover:bg-stone-200 transition-colors shadow-xs self-start sm:self-auto"
           >
             <Plus className="w-3.5 h-3.5" />
@@ -329,8 +355,14 @@ export const AboutView: React.FC = () => {
               </div>
 
               <button
-                onClick={() => removeTechnology(tech.id)}
-                title="Kaldır"
+                onClick={() => {
+                  if (!isAdmin) {
+                    openAdminLogin('Yetkinlik silmek için lütfen yönetici girişi yapınız.');
+                    return;
+                  }
+                  removeTechnology(tech.id);
+                }}
+                title={isAdmin ? "Kaldır" : "Silmek için yönetici girişi gereklidir"}
                 className="opacity-0 group-hover:opacity-100 p-1 text-stone-400 hover:text-red-600 rounded-md transition-all"
               >
                 <Trash2 className="w-3.5 h-3.5" />
@@ -368,20 +400,37 @@ export const AboutView: React.FC = () => {
           </button>
 
           {/* Import JSON */}
-          <label className="px-4 py-2 text-xs font-medium text-stone-800 dark:text-stone-200 bg-stone-100 dark:bg-stone-800 hover:bg-stone-200 dark:hover:bg-stone-700 rounded-lg transition-colors flex items-center gap-1.5 cursor-pointer">
+          <button
+            type="button"
+            onClick={() => {
+              if (!isAdmin) {
+                openAdminLogin('Yedek yüklemek ve verileri değiştirmek için yönetici girişi yapınız.');
+                return;
+              }
+              const input = document.getElementById('json-upload-input');
+              input?.click();
+            }}
+            title={isAdmin ? "JSON Yedek Yükle" : "Yedek yüklemek için yönetici girişi yapınız"}
+            className="px-4 py-2 text-xs font-medium text-stone-800 dark:text-stone-200 bg-stone-100 dark:bg-stone-800 hover:bg-stone-200 dark:hover:bg-stone-700 rounded-lg transition-colors flex items-center gap-1.5 cursor-pointer"
+          >
             <Upload className="w-4 h-4" />
             <span>Yedek Yükle (JSON)</span>
             <input
+              id="json-upload-input"
               type="file"
               accept=".json"
               onChange={handleFileUpload}
               className="hidden"
             />
-          </label>
+          </button>
 
           {/* Load Sample Data */}
           <button
             onClick={() => {
+              if (!isAdmin) {
+                openAdminLogin('Örnek veri yüklemek için lütfen yönetici girişi yapınız.');
+                return;
+              }
               if (confirm('Örnek çalışmaları ve haftalık hedefleri yüklemek istiyor musunuz?')) {
                 loadSampleData();
               }
@@ -396,6 +445,10 @@ export const AboutView: React.FC = () => {
           {/* Reset to defaults */}
           <button
             onClick={() => {
+              if (!isAdmin) {
+                openAdminLogin('Verileri sıfırlamak için lütfen yönetici girişi yapınız.');
+                return;
+              }
               if (confirm('Tüm verileri başlangıç durumuna döndürmek istediğinizden emin misiniz?')) {
                 resetToDefaults();
               }

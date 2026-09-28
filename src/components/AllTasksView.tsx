@@ -13,7 +13,7 @@ export const AllTasksView: React.FC<AllTasksViewProps> = ({
   onOpenTaskModal,
   onSelectWeek
 }) => {
-  const { tasks, toggleTaskStatus, deleteTask, exportToCsv } = useTracker();
+  const { tasks, toggleTaskStatus, deleteTask, exportToCsv, isAdmin, openAdminLogin } = useTracker();
 
   // Filter and Search states
   const [searchQuery, setSearchQuery] = useState('');
@@ -89,7 +89,14 @@ export const AllTasksView: React.FC<AllTasksViewProps> = ({
           </button>
 
           <button
-            onClick={() => onOpenTaskModal()}
+            onClick={() => {
+              if (!isAdmin) {
+                openAdminLogin('Yeni çalışma eklemek için lütfen yönetici girişi yapınız.');
+                return;
+              }
+              onOpenTaskModal();
+            }}
+            title={isAdmin ? "Yeni Çalışma Ekle" : "Çalışma eklemek için yönetici girişi yapınız"}
             className="inline-flex items-center gap-1.5 px-4 py-2 text-xs sm:text-sm font-semibold text-white bg-stone-900 dark:bg-stone-100 dark:text-stone-900 rounded-lg hover:bg-stone-800 dark:hover:bg-stone-200 transition-colors shadow-xs"
           >
             <Plus className="w-4 h-4" />
@@ -257,8 +264,14 @@ export const AllTasksView: React.FC<AllTasksViewProps> = ({
                   </button>
                   <span aria-hidden="true">·</span>
                   <button
-                    onClick={() => toggleTaskStatus(task.id)}
-                    title="Durumu değiştirmek için tıklayın"
+                    onClick={() => {
+                      if (!isAdmin) {
+                        openAdminLogin('Çalışma durumunu değiştirmek için lütfen yönetici girişi yapınız.');
+                        return;
+                      }
+                      toggleTaskStatus(task.id);
+                    }}
+                    title={isAdmin ? "Durumu değiştirmek için tıklayın" : "Durumu değiştirmek için yönetici girişi gereklidir"}
                     className="inline-flex items-center gap-1 font-medium hover:underline focus:outline-none"
                   >
                     {task.status === 'Tamamlandı' ? (
@@ -323,7 +336,14 @@ export const AllTasksView: React.FC<AllTasksViewProps> = ({
               {/* Actions */}
               <div className="flex items-center gap-2 self-end md:self-center shrink-0 pt-2 md:pt-0 border-t md:border-t-0 border-stone-100 dark:border-stone-800">
                 <button
-                  onClick={() => onOpenTaskModal(task, task.weekNumber)}
+                  onClick={() => {
+                    if (!isAdmin) {
+                      openAdminLogin('Çalışmayı düzenlemek için lütfen yönetici girişi yapınız.');
+                      return;
+                    }
+                    onOpenTaskModal(task, task.weekNumber);
+                  }}
+                  title={isAdmin ? "Düzenle" : "Düzenlemek için yönetici girişi gereklidir"}
                   className="px-3 py-1.5 text-xs font-medium text-stone-700 dark:text-stone-300 bg-stone-100 dark:bg-stone-800 hover:bg-stone-200 dark:hover:bg-stone-700 rounded-lg transition-colors flex items-center gap-1"
                 >
                   <Edit3 className="w-3.5 h-3.5" />
@@ -331,12 +351,16 @@ export const AllTasksView: React.FC<AllTasksViewProps> = ({
                 </button>
                 <button
                   onClick={() => {
+                    if (!isAdmin) {
+                      openAdminLogin('Çalışmayı silmek için lütfen yönetici girişi yapınız.');
+                      return;
+                    }
                     if (confirm('Bu çalışmayı silmek istediğinizden emin misiniz?')) {
                       deleteTask(task.id);
                     }
                   }}
                   className="p-1.5 text-stone-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/40 rounded-lg transition-colors"
-                  title="Sil"
+                  title={isAdmin ? "Sil" : "Silmek için yönetici girişi gereklidir"}
                 >
                   <Trash2 className="w-4 h-4" />
                 </button>

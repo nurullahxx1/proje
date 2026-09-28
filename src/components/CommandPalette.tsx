@@ -24,7 +24,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
   onOpenPrintReport,
   onLock
 }) => {
-  const { weeks, tasks, activeTab, setActiveTab, theme, toggleTheme, exportToCsv, exportData } = useTracker();
+  const { weeks, tasks, activeTab, setActiveTab, theme, toggleTheme, exportToCsv, exportData, isAdmin, openAdminLogin } = useTracker();
   const [query, setQuery] = useState('');
   const [selectedIndex, setSelectedIndex] = useState(0);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -117,6 +117,10 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
       icon: <Plus className="w-4 h-4 text-emerald-500" />,
       action: () => {
         onClose();
+        if (!isAdmin) {
+          openAdminLogin('Yeni çalışma eklemek için lütfen yönetici girişi yapınız.');
+          return;
+        }
         onOpenNewTask();
       }
     },
@@ -166,9 +170,9 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
       }
     },
     {
-      id: 'act-lock',
-      label: 'Ekranı Kilitle / Güvenli Çıkış Yap',
-      icon: <Lock className="w-4 h-4 text-red-500" />,
+      id: 'act-auth',
+      label: isAdmin ? 'Yönetici Oturumunu Kapat (Çıkış Yap)' : 'Yönetici Girişi Yap (Admin Şifresi)',
+      icon: <Lock className="w-4 h-4 text-stone-500" />,
       action: () => {
         onClose();
         onLock();

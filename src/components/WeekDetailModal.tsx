@@ -15,7 +15,17 @@ export const WeekDetailModal: React.FC<WeekDetailModalProps> = ({
   onClose,
   onOpenTaskModal
 }) => {
-  const { weeks, getWeekTasks, getWeekStatus, getWeekHours, toggleTaskStatus, deleteTask, updateWeek } = useTracker();
+  const {
+    weeks,
+    getWeekTasks,
+    getWeekStatus,
+    getWeekHours,
+    toggleTaskStatus,
+    deleteTask,
+    updateWeek,
+    isAdmin,
+    openAdminLogin
+  } = useTracker();
 
   const [isEditingWeekInfo, setIsEditingWeekInfo] = useState(false);
   const [editTitle, setEditTitle] = useState('');
@@ -46,13 +56,55 @@ export const WeekDetailModal: React.FC<WeekDetailModalProps> = ({
   const completedCount = tasks.filter((t) => t.status === 'Tamamlandı').length;
 
   const handleStartEditWeek = () => {
+    if (!isAdmin) {
+      openAdminLogin('Hafta başlığı ve hedeflerini düzenlemek için lütfen yönetici girişi yapınız.');
+      return;
+    }
     setEditTitle(currentWeekMeta.title);
     setEditGoal(currentWeekMeta.goal);
     setIsEditingWeekInfo(true);
   };
 
+  const handleAddTaskClick = () => {
+    if (!isAdmin) {
+      openAdminLogin('Bu haftaya çalışma eklemek için lütfen yönetici girişi yapınız.');
+      return;
+    }
+    onOpenTaskModal(undefined, weekNumber);
+  };
+
+  const handleEditTaskClick = (task: StudyTask) => {
+    if (!isAdmin) {
+      openAdminLogin('Çalışmayı düzenlemek için lütfen yönetici girişi yapınız.');
+      return;
+    }
+    onOpenTaskModal(task, weekNumber);
+  };
+
+  const handleDeleteTaskClick = (taskId: string) => {
+    if (!isAdmin) {
+      openAdminLogin('Çalışmayı silmek için lütfen yönetici girişi yapınız.');
+      return;
+    }
+    if (confirm('Bu çalışmayı silmek istediğinizden emin misiniz?')) {
+      deleteTask(taskId);
+    }
+  };
+
+  const handleToggleStatusClick = (taskId: string) => {
+    if (!isAdmin) {
+      openAdminLogin('Çalışma durumunu değiştirmek için lütfen yönetici girişi yapınız.');
+      return;
+    }
+    toggleTaskStatus(taskId);
+  };
+
   const handleSaveWeek = (e: React.FormEvent) => {
     e.preventDefault();
+    if (!isAdmin) {
+      openAdminLogin('Haftayı güncellemek için yönetici girişi yapmalısınız.');
+      return;
+    }
     updateWeek(weekNumber, {
       title: editTitle.trim() || `${weekNumber}. Hafta`,
       goal: editGoal.trim()
@@ -183,7 +235,8 @@ export const WeekDetailModal: React.FC<WeekDetailModalProps> = ({
           </div>
 
           <button
-            onClick={() => onOpenTaskModal(undefined, weekNumber)}
+            onClick={handleAddTaskClick}
+            title={isAdmin ? "Bu haftaya çalışma ekle" : "Çalışma eklemek için yönetici girişi yapınız"}
             className="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-white bg-stone-900 dark:bg-stone-100 dark:text-stone-900 rounded-lg hover:bg-stone-800 dark:hover:bg-stone-200 transition-colors shadow-xs"
           >
             <Plus className="w-3.5 h-3.5" />
@@ -205,7 +258,7 @@ export const WeekDetailModal: React.FC<WeekDetailModalProps> = ({
                 Konu başlığı, saat, kaynak linki ve notlarınızı girerek ilk çalışmanızı başlatın.
               </p>
               <button
-                onClick={() => onOpenTaskModal(undefined, weekNumber)}
+                onClick={handleAddTaskClick}
                 className="mt-4 inline-flex items-center gap-1.5 px-4 py-2 text-xs font-medium text-white bg-stone-900 dark:bg-stone-100 dark:text-stone-900 rounded-lg hover:bg-stone-800 dark:hover:bg-stone-200 transition-colors"
               >
                 <Plus className="w-3.5 h-3.5" />
@@ -223,8 +276,8 @@ export const WeekDetailModal: React.FC<WeekDetailModalProps> = ({
                     {/* Metadata line: zero-pill compliant */}
                     <div className="flex flex-wrap items-center gap-2 text-xs text-stone-500 dark:text-stone-400">
                       <button
-                        onClick={() => toggleTaskStatus(task.id)}
-                        title="Durumu değiştirmek için tıklayın"
+                        onClick={() => handleToggleStatusClick(task.id)}
+                        title={isAdmin ? "Durumu değiştirmek için tıklayın" : "Durumu değiştirmek için yönetici girişi gereklidir"}
                         className="inline-flex items-center gap-1 text-left font-medium hover:underline focus:outline-none"
                       >
                         {task.status === 'Tamamlandı' ? (
@@ -289,19 +342,15 @@ export const WeekDetailModal: React.FC<WeekDetailModalProps> = ({
                   {/* Actions */}
                   <div className="flex items-center gap-1 shrink-0">
                     <button
-                      onClick={() => onOpenTaskModal(task, weekNumber)}
-                      title="Düzenle"
+                      onClick={() => handleEditTaskClick(task)}
+                      title={isAdmin ? "Düzenle" : "Düzenlemek için yönetici girişi gereklidir"}
                       className="p-1.5 text-stone-400 hover:text-stone-700 dark:hover:text-stone-200 hover:bg-stone-100 dark:hover:bg-stone-800 rounded-lg transition-colors"
                     >
                       <Edit3 className="w-4 h-4" />
                     </button>
                     <button
-                      onClick={() => {
-                        if (confirm('Bu çalışmayı silmek istediğinizden emin misiniz?')) {
-                          deleteTask(task.id);
-                        }
-                      }}
-                      title="Sil"
+                      onClick={() => handleDeleteTaskClick(task.id)}
+                      title={isAdmin ? "Sil" : "Silmek için yönetici girişi gereklidir"}
                       className="p-1.5 text-stone-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/40 rounded-lg transition-colors"
                     >
                       <Trash2 className="w-4 h-4" />

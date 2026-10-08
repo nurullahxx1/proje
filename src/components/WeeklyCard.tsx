@@ -1,7 +1,7 @@
 import React from 'react';
 import { useTracker } from '../context/TrackerContext';
 import { WeekMeta } from '../types/tracker';
-import { Plus, ChevronRight, ExternalLink } from 'lucide-react';
+import { Plus, ChevronRight, ExternalLink, Gamepad2 } from 'lucide-react';
 
 interface WeeklyCardProps {
   week: WeekMeta;
@@ -20,8 +20,11 @@ export const WeeklyCard: React.FC<WeeklyCardProps> = ({
   const status = getWeekStatus(week.weekNumber);
   const hours = getWeekHours(week.weekNumber);
   const hasCustomTitle = Boolean(week.title && week.title.trim() !== `${week.weekNumber}. Hafta`);
-  const driveUrl = week.driveLink || tasks.find((t) => t.link?.includes('drive.google.com'))?.link;
-  const hasDrive = Boolean(driveUrl);
+  
+  // Direct resource link (Drive or Live Project like Vercel game)
+  const resourceUrl = week.driveLink || tasks.find((t) => Boolean(t.link))?.link;
+  const isDrive = resourceUrl ? resourceUrl.includes('drive.google.com') : false;
+  const isGameProject = resourceUrl ? (resourceUrl.includes('nurullahoyunlarr') || resourceUrl.includes('vercel.app')) : false;
 
   const statusColor =
     status === 'Tamamlandı'
@@ -80,10 +83,10 @@ export const WeeklyCard: React.FC<WeeklyCardProps> = ({
           )}
         </div>
 
-        {/* Google Drive files quick button (visible and accessible to everyone) */}
-        {hasDrive && driveUrl && (
+        {/* Resource link button (visible and accessible to everyone: Google Drive or Live Project) */}
+        {resourceUrl && isDrive && (
           <a
-            href={driveUrl}
+            href={resourceUrl}
             target="_blank"
             rel="noopener noreferrer"
             onClick={(e) => e.stopPropagation()}
@@ -95,6 +98,35 @@ export const WeeklyCard: React.FC<WeeklyCardProps> = ({
             </svg>
             <span>Drive Dosyaları</span>
             <ExternalLink className="w-3 h-3 ml-0.5 opacity-70" />
+          </a>
+        )}
+
+        {resourceUrl && isGameProject && (
+          <a
+            href={resourceUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            onClick={(e) => e.stopPropagation()}
+            title="Nurullah Oyunlar canlı web uygulamasını aç"
+            className="mt-3 inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold text-purple-700 hover:text-purple-800 bg-purple-50 hover:bg-purple-100 dark:text-purple-300 dark:bg-purple-950/60 dark:hover:bg-purple-900/60 border border-purple-200/80 dark:border-purple-800 transition-colors shadow-2xs"
+          >
+            <Gamepad2 className="w-3.5 h-3.5 shrink-0 text-purple-600 dark:text-purple-400" />
+            <span>Oyunlar &amp; Proje</span>
+            <ExternalLink className="w-3 h-3 ml-0.5 opacity-70" />
+          </a>
+        )}
+
+        {resourceUrl && !isDrive && !isGameProject && (
+          <a
+            href={resourceUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            onClick={(e) => e.stopPropagation()}
+            title="Haftalık projeyi / bağlantıyı yeni sekmede aç"
+            className="mt-3 inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold text-stone-700 hover:text-stone-900 bg-stone-100 hover:bg-stone-200 dark:text-stone-300 dark:bg-stone-800 dark:hover:bg-stone-700 border border-stone-200 dark:border-stone-700 transition-colors shadow-2xs"
+          >
+            <ExternalLink className="w-3.5 h-3.5 shrink-0 text-stone-600 dark:text-stone-400" />
+            <span>Proje Bağlantısı</span>
           </a>
         )}
       </div>

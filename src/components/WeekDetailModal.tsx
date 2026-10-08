@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useTracker } from '../context/TrackerContext';
 import { StudyTask } from '../types/tracker';
 import { formatExternalUrl } from '../utils/helpers';
-import { X, Plus, Calendar, Clock, ExternalLink, Edit3, Trash2, CheckCircle, Clock3, CircleDot, Target } from 'lucide-react';
+import { X, Plus, Calendar, Clock, ExternalLink, Edit3, Trash2, CheckCircle, Clock3, CircleDot, Target, Gamepad2 } from 'lucide-react';
 
 interface WeekDetailModalProps {
   weekNumber: number | null;
@@ -210,17 +210,17 @@ export const WeekDetailModal: React.FC<WeekDetailModalProps> = ({
             </div>
             <div>
               <label className="block text-xs font-semibold text-stone-700 dark:text-stone-300 mb-1">
-                Google Drive Klasör / Materyal Bağlantısı (Opsiyonel)
+                Haftalık Bağlantı (Google Drive veya Canlı Proje / Oyun URL)
               </label>
               <input
                 type="url"
                 value={editDriveLink}
                 onChange={(e) => setEditDriveLink(e.target.value)}
-                placeholder="https://drive.google.com/drive/folders/..."
+                placeholder="https://drive.google.com/... veya https://nurullahoyunlarr.vercel.app/"
                 className="w-full px-3 py-1.5 text-sm bg-white dark:bg-stone-800 border border-stone-200 dark:border-stone-700 rounded-lg text-stone-900 dark:text-stone-100"
               />
               <p className="text-[11px] text-stone-500 dark:text-stone-400 mt-1">
-                Tüm ziyaretçilerin erişebileceği Google Drive klasör bağlantısı.
+                Tüm ziyaretçilerin erişebileceği Google Drive klasörü veya canlı proje/oyun web bağlantısı.
               </p>
             </div>
             <div className="flex justify-end gap-2 pt-1">
@@ -274,35 +274,101 @@ export const WeekDetailModal: React.FC<WeekDetailModalProps> = ({
           </div>
         ) : null}
 
-        {/* Drive Resource Banner if available */}
-        {(currentWeekMeta.driveLink || tasks.some((t) => t.link?.includes('drive.google.com'))) && (
-          <div className="px-6 py-3.5 bg-blue-50/80 dark:bg-blue-950/30 border-b border-blue-100 dark:border-blue-900/50 flex flex-wrap items-center justify-between gap-3">
-            <div className="flex items-center gap-3">
-              <div className="w-8 h-8 rounded-lg bg-blue-100 dark:bg-blue-900/60 flex items-center justify-center text-blue-600 dark:text-blue-400 shrink-0">
-                <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
-                  <path d="M7.71 3.5L1.15 15l3.43 6 6.55-11.5L7.71 3.5zm3.43 6l4.29 7.5H22l-4.29-7.5h-6.57zm5.14-6l-3.43 6h6.57l3.43-6h-6.57z"/>
-                </svg>
-              </div>
-              <div>
-                <div className="text-xs font-semibold text-blue-900 dark:text-blue-100 flex items-center gap-1.5">
-                  <span>Google Drive Çalışma &amp; Döküman Klasörü</span>
+        {/* Resource Banner if available (Google Drive or Live Web / Game Project) */}
+        {(() => {
+          const resUrl = currentWeekMeta.driveLink || tasks.find((t) => Boolean(t.link))?.link;
+          if (!resUrl) return null;
+          const isDriveRes = resUrl.includes('drive.google.com');
+          const isGameRes = resUrl.includes('nurullahoyunlarr') || resUrl.includes('vercel.app');
+
+          if (isDriveRes) {
+            return (
+              <div className="px-6 py-3.5 bg-blue-50/80 dark:bg-blue-950/30 border-b border-blue-100 dark:border-blue-900/50 flex flex-wrap items-center justify-between gap-3">
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-lg bg-blue-100 dark:bg-blue-900/60 flex items-center justify-center text-blue-600 dark:text-blue-400 shrink-0">
+                    <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
+                      <path d="M7.71 3.5L1.15 15l3.43 6 6.55-11.5L7.71 3.5zm3.43 6l4.29 7.5H22l-4.29-7.5h-6.57zm5.14-6l-3.43 6h6.57l3.43-6h-6.57z"/>
+                    </svg>
+                  </div>
+                  <div>
+                    <div className="text-xs font-semibold text-blue-900 dark:text-blue-100 flex items-center gap-1.5">
+                      <span>Google Drive Çalışma &amp; Döküman Klasörü</span>
+                    </div>
+                    <div className="text-[11px] text-blue-700/80 dark:text-blue-300/80">
+                      Bu haftaya ait paylaşılan tüm ders notları ve kaynak dosyaları
+                    </div>
+                  </div>
                 </div>
-                <div className="text-[11px] text-blue-700/80 dark:text-blue-300/80">
-                  Bu haftaya ait paylaşılan tüm ders notları ve kaynak dosyaları
+                <a
+                  href={formatExternalUrl(resUrl)}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-semibold text-white bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600 rounded-lg transition-colors shadow-xs"
+                >
+                  <span>Drive Klasörünü Aç</span>
+                  <ExternalLink className="w-3.5 h-3.5" />
+                </a>
+              </div>
+            );
+          }
+
+          if (isGameRes) {
+            return (
+              <div className="px-6 py-3.5 bg-purple-50/90 dark:bg-purple-950/40 border-b border-purple-100 dark:border-purple-900/50 flex flex-wrap items-center justify-between gap-3">
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-lg bg-purple-100 dark:bg-purple-900/60 flex items-center justify-center text-purple-600 dark:text-purple-400 shrink-0">
+                    <Gamepad2 className="w-4.5 h-4.5" />
+                  </div>
+                  <div>
+                    <div className="text-xs font-semibold text-purple-900 dark:text-purple-100 flex items-center gap-1.5">
+                      <span>Canlı Web Projesi: Nurullah Oyunlar</span>
+                      <span className="px-1.5 py-0.5 text-[10px] font-bold bg-purple-200/80 dark:bg-purple-900 text-purple-800 dark:text-purple-200 rounded">Vercel</span>
+                    </div>
+                    <div className="text-[11px] text-purple-700/80 dark:text-purple-300/80">
+                      3. haftaya ait geliştirilen canlı web tabanlı oyun projeleri ve uygulama çıktısı
+                    </div>
+                  </div>
+                </div>
+                <a
+                  href={formatExternalUrl(resUrl)}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-semibold text-white bg-purple-600 hover:bg-purple-700 dark:bg-purple-500 dark:hover:bg-purple-600 rounded-lg transition-colors shadow-xs"
+                >
+                  <span>Oyunu / Projeyi Aç</span>
+                  <ExternalLink className="w-3.5 h-3.5" />
+                </a>
+              </div>
+            );
+          }
+
+          return (
+            <div className="px-6 py-3.5 bg-stone-100/90 dark:bg-stone-800/50 border-b border-stone-200/80 dark:border-stone-700/60 flex flex-wrap items-center justify-between gap-3">
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 rounded-lg bg-stone-200 dark:bg-stone-700 flex items-center justify-center text-stone-700 dark:text-stone-300 shrink-0">
+                  <ExternalLink className="w-4 h-4" />
+                </div>
+                <div>
+                  <div className="text-xs font-semibold text-stone-900 dark:text-stone-100">
+                    Haftalık Çalışma &amp; Proje Bağlantısı
+                  </div>
+                  <div className="text-[11px] text-stone-600 dark:text-stone-400">
+                    Bu haftaya ait paylaşılan harici çalışma ve kaynak adresi
+                  </div>
                 </div>
               </div>
+              <a
+                href={formatExternalUrl(resUrl)}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-semibold text-white bg-stone-900 hover:bg-stone-800 dark:bg-stone-100 dark:text-stone-900 dark:hover:bg-stone-200 rounded-lg transition-colors shadow-xs"
+              >
+                <span>Bağlantıyı Aç</span>
+                <ExternalLink className="w-3.5 h-3.5" />
+              </a>
             </div>
-            <a
-              href={formatExternalUrl(currentWeekMeta.driveLink || tasks.find((t) => t.link?.includes('drive.google.com'))?.link)}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-semibold text-white bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600 rounded-lg transition-colors shadow-xs"
-            >
-              <span>Drive Klasörünü Aç</span>
-              <ExternalLink className="w-3.5 h-3.5" />
-            </a>
-          </div>
-        )}
+          );
+        })()}
 
         {/* Sub-bar with count and "+ Add Study" */}
         <div className="px-6 py-3 border-b border-stone-100 dark:border-stone-800/60 flex items-center justify-between">

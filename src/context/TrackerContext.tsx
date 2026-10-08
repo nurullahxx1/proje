@@ -201,6 +201,8 @@ export const TrackerProvider: React.FC<{ children: ReactNode }> = ({ children })
           driveLink = 'https://drive.google.com/drive/folders/1WddXWYzBecZYU-YTn1toEKjxvcbhP-0E?usp=sharing';
         } else if (w.weekNumber === 2) {
           driveLink = 'https://drive.google.com/drive/folders/17U0tZzu9BdqJHaWGGqXnLqSavuEQabeI?usp=sharing';
+        } else if (w.weekNumber === 3) {
+          driveLink = 'https://nurullahoyunlarr.vercel.app/';
         }
 
         return {

@@ -45,7 +45,10 @@ export const WeeklyMatrix: React.FC<WeeklyMatrixProps> = ({ onSelectWeek }) => {
         {weeks.map((week) => {
           const status = getWeekStatus(week.weekNumber);
           const tasks = getWeekTasks(week.weekNumber);
-          const hasDrive = Boolean(week.driveLink || tasks.some((t) => t.link?.includes('drive.google.com')));
+          const resUrl = week.driveLink || tasks.find((t) => Boolean(t.link))?.link;
+          const hasResource = Boolean(resUrl);
+          const isDrive = resUrl ? resUrl.includes('drive.google.com') : false;
+          const isGame = resUrl ? (resUrl.includes('nurullahoyunlarr') || resUrl.includes('vercel.app')) : false;
 
           let bgClass = 'bg-stone-50 dark:bg-stone-800/60 text-stone-700 dark:text-stone-300 border border-stone-200/90 dark:border-stone-700/60 hover:border-red-400 hover:bg-stone-100/90 dark:hover:bg-stone-800 hover:-translate-y-0.5';
           if (status === 'Tamamlandı') {
@@ -54,11 +57,13 @@ export const WeeklyMatrix: React.FC<WeeklyMatrixProps> = ({ onSelectWeek }) => {
             bgClass = 'bg-amber-500 text-white border-transparent hover:bg-amber-600 shadow-xs hover:-translate-y-0.5';
           }
 
+          const resourceLabel = isDrive ? 'Drive Dökümanı Mevcut' : isGame ? 'Canlı Oyun / Proje Mevcut' : 'Bağlantı Mevcut';
+
           return (
             <button
               key={week.weekNumber}
               onClick={() => onSelectWeek(week.weekNumber)}
-              title={`${week.weekNumber}. Hafta${week.title && week.title !== `${week.weekNumber}. Hafta` ? `: ${week.title}` : ''} (${status}) - ${tasks.length} çalışma${hasDrive ? ' · Drive Dökümanı Mevcut' : ''}`}
+              title={`${week.weekNumber}. Hafta${week.title && week.title !== `${week.weekNumber}. Hafta` ? `: ${week.title}` : ''} (${status}) - ${tasks.length} çalışma${hasResource ? ` · ${resourceLabel}` : ''}`}
               className={`group relative h-11 rounded-lg font-mono text-xs font-bold flex flex-col items-center justify-center transition-all duration-150 cursor-pointer ${bgClass}`}
             >
               <span>{String(week.weekNumber).padStart(2, '0')}</span>
@@ -68,8 +73,17 @@ export const WeeklyMatrix: React.FC<WeeklyMatrixProps> = ({ onSelectWeek }) => {
                     {tasks.length}ç
                   </span>
                 )}
-                {hasDrive && (
-                  <span className="w-1.5 h-1.5 rounded-full bg-blue-500 dark:bg-blue-300 inline-block" title="Drive bağlantısı var" />
+                {hasResource && (
+                  <span
+                    className={`w-1.5 h-1.5 rounded-full inline-block ${
+                      isDrive
+                        ? 'bg-blue-500 dark:bg-blue-300'
+                        : isGame
+                        ? 'bg-purple-500 dark:bg-purple-300'
+                        : 'bg-emerald-500 dark:bg-emerald-300'
+                    }`}
+                    title={resourceLabel}
+                  />
                 )}
               </div>
             </button>

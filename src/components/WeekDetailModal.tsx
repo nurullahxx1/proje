@@ -2,7 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { useTracker } from '../context/TrackerContext';
 import { StudyTask } from '../types/tracker';
 import { formatExternalUrl } from '../utils/helpers';
-import { X, Plus, Calendar, Clock, ExternalLink, Edit3, Trash2, CheckCircle, Clock3, CircleDot, Target, Gamepad2 } from 'lucide-react';
+import { X, Plus, Calendar, Clock, ExternalLink, Edit3, Trash2, CheckCircle, Clock3, CircleDot, Target, Gamepad2, Globe, QrCode } from 'lucide-react';
+import { QRCodeSVG } from 'qrcode.react';
+import { QRCodeModal } from './QRCodeModal';
 
 interface WeekDetailModalProps {
   weekNumber: number | null;
@@ -31,6 +33,8 @@ export const WeekDetailModal: React.FC<WeekDetailModalProps> = ({
   const [editTitle, setEditTitle] = useState('');
   const [editGoal, setEditGoal] = useState('');
   const [editDriveLink, setEditDriveLink] = useState('');
+  const [isQrModalOpen, setIsQrModalOpen] = useState(false);
+  const [qrModalCustomData, setQrModalCustomData] = useState<{ url: string; title: string; weekNum?: number } | null>(null);
 
   // Close on Escape key
   useEffect(() => {
@@ -216,7 +220,7 @@ export const WeekDetailModal: React.FC<WeekDetailModalProps> = ({
                 type="url"
                 value={editDriveLink}
                 onChange={(e) => setEditDriveLink(e.target.value)}
-                placeholder="https://drive.google.com/... veya https://nurullahoyunlarr.vercel.app/"
+                placeholder="https://drive.google.com/... veya https://nurullahxx1.github.io/controlhub/"
                 className="w-full px-3 py-1.5 text-sm bg-white dark:bg-stone-800 border border-stone-200 dark:border-stone-700 rounded-lg text-stone-900 dark:text-stone-100"
               />
               <p className="text-[11px] text-stone-500 dark:text-stone-400 mt-1">
@@ -338,6 +342,86 @@ export const WeekDetailModal: React.FC<WeekDetailModalProps> = ({
                   <span>Oyunu / Projeyi Aç</span>
                   <ExternalLink className="w-3.5 h-3.5" />
                 </a>
+              </div>
+            );
+          }
+
+          const isControlHubRes = resUrl.includes('controlhub') || resUrl.includes('github.io') || currentWeekMeta.weekNumber === 4;
+
+          if (isControlHubRes) {
+            return (
+              <div className="px-6 py-4 bg-teal-50/90 dark:bg-teal-950/40 border-b border-teal-200/80 dark:border-teal-900/60 flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div className="flex items-start sm:items-center gap-3.5">
+                  {/* High-contrast QR Code preview container */}
+                  <div
+                    onClick={() => {
+                      setQrModalCustomData({
+                        url: formatExternalUrl(resUrl),
+                        title: 'ControlHub - 4. Hafta Projesi',
+                        weekNum: currentWeekMeta.weekNumber
+                      });
+                      setIsQrModalOpen(true);
+                    }}
+                    className="p-1.5 bg-white rounded-xl border-2 border-teal-300 dark:border-teal-700 shadow-sm shrink-0 cursor-pointer hover:scale-105 hover:border-teal-500 transition-all group"
+                    title="QR Kodu tam boyutta görmek ve indirmek için tıklayın"
+                  >
+                    <QRCodeSVG
+                      value={formatExternalUrl(resUrl)}
+                      size={72}
+                      level="H"
+                      marginSize={1}
+                      bgColor="#ffffff"
+                      fgColor="#0f172a"
+                    />
+                    <div className="mt-1 text-[9px] font-mono font-bold text-center text-teal-800 flex items-center justify-center gap-0.5">
+                      <QrCode className="w-2.5 h-2.5" />
+                      <span>Büyüt</span>
+                    </div>
+                  </div>
+
+                  <div>
+                    <div className="text-xs font-bold text-teal-900 dark:text-teal-100 flex flex-wrap items-center gap-1.5">
+                      <Globe className="w-4 h-4 text-teal-600 dark:text-teal-400" />
+                      <span>Canlı Web Projesi: ControlHub</span>
+                      <span className="px-1.5 py-0.5 text-[10px] font-bold bg-teal-200/90 dark:bg-teal-900 text-teal-900 dark:text-teal-200 rounded">GitHub Pages</span>
+                      <span className="px-1.5 py-0.5 text-[10px] font-bold bg-emerald-100 dark:bg-emerald-950 text-emerald-800 dark:text-emerald-300 rounded border border-emerald-300/80 dark:border-emerald-800 flex items-center gap-1">
+                        <QrCode className="w-3 h-3 text-emerald-600 dark:text-emerald-400" />
+                        <span>Mobil QR Kod Hazır</span>
+                      </span>
+                    </div>
+                    <div className="text-[11px] text-teal-700/90 dark:text-teal-300/90 mt-1 max-w-lg leading-relaxed">
+                      4. haftaya ait ControlHub kontrol paneli ve canlı web uygulaması. Telefon kameranızı QR koda doğrultarak veya &quot;Projeyi Aç&quot; butonuyla doğrudan erişebilirsiniz.
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-2 shrink-0 self-end md:self-center">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setQrModalCustomData({
+                        url: formatExternalUrl(resUrl),
+                        title: 'ControlHub - 4. Hafta Projesi',
+                        weekNum: currentWeekMeta.weekNumber
+                      });
+                      setIsQrModalOpen(true);
+                    }}
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-teal-800 dark:text-teal-200 bg-white dark:bg-stone-800 hover:bg-teal-100/70 dark:hover:bg-stone-700 border border-teal-300 dark:border-teal-700 rounded-lg transition-colors shadow-2xs cursor-pointer"
+                  >
+                    <QrCode className="w-3.5 h-3.5" />
+                    <span>QR Büyüt &amp; İndir</span>
+                  </button>
+
+                  <a
+                    href={formatExternalUrl(resUrl)}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-semibold text-white bg-teal-600 hover:bg-teal-700 dark:bg-teal-500 dark:hover:bg-teal-600 rounded-lg transition-colors shadow-xs"
+                  >
+                    <span>Projeyi Aç</span>
+                    <ExternalLink className="w-3.5 h-3.5" />
+                  </a>
+                </div>
               </div>
             );
           }
@@ -487,6 +571,34 @@ export const WeekDetailModal: React.FC<WeekDetailModalProps> = ({
                             <span>Google Drive Klasörünü Aç</span>
                             <ExternalLink className="w-3 h-3 shrink-0 opacity-70 group-hover/drivelink:opacity-100" />
                           </a>
+                        ) : (task.link.includes('controlhub') || task.link.includes('github.io')) ? (
+                          <div className="flex flex-wrap items-center gap-2">
+                            <a
+                              href={formatExternalUrl(task.link)}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-teal-700 bg-teal-50 hover:bg-teal-100 dark:text-teal-300 dark:bg-teal-950/60 dark:hover:bg-teal-900/60 border border-teal-200 dark:border-teal-800 rounded-lg transition-colors"
+                            >
+                              <Globe className="w-3.5 h-3.5 shrink-0 text-teal-600 dark:text-teal-400" />
+                              <span>ControlHub Projesini Aç</span>
+                              <ExternalLink className="w-3 h-3 shrink-0 opacity-70" />
+                            </a>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setQrModalCustomData({
+                                  url: formatExternalUrl(task.link),
+                                  title: 'ControlHub - 4. Hafta Projesi',
+                                  weekNum: task.weekNumber
+                                });
+                                setIsQrModalOpen(true);
+                              }}
+                              className="inline-flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-semibold text-teal-800 dark:text-teal-200 bg-teal-100/80 hover:bg-teal-200/90 dark:bg-teal-900/60 dark:hover:bg-teal-800/70 border border-teal-300 dark:border-teal-700 rounded-lg transition-colors cursor-pointer"
+                            >
+                              <QrCode className="w-3.5 h-3.5" />
+                              <span>QR Kod</span>
+                            </button>
+                          </div>
                         ) : (
                           <a
                             href={formatExternalUrl(task.link)}
@@ -536,6 +648,20 @@ export const WeekDetailModal: React.FC<WeekDetailModalProps> = ({
           </button>
         </div>
       </div>
+
+      {/* QR Code Modal for Week or Task */}
+      {isQrModalOpen && (
+        <QRCodeModal
+          isOpen={isQrModalOpen}
+          onClose={() => {
+            setIsQrModalOpen(false);
+            setQrModalCustomData(null);
+          }}
+          url={qrModalCustomData?.url || (currentWeekMeta.driveLink ? formatExternalUrl(currentWeekMeta.driveLink) : 'https://nurullahxx1.github.io/controlhub/')}
+          title={qrModalCustomData?.title || 'ControlHub - 4. Hafta Projesi'}
+          weekNumber={qrModalCustomData?.weekNum || currentWeekMeta.weekNumber}
+        />
+      )}
     </div>
   );
 };

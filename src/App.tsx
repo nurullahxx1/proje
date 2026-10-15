@@ -19,6 +19,7 @@ import { ToastContainer } from './components/ToastContainer';
 import { InsightsView } from './components/InsightsView';
 import { CommandPalette } from './components/CommandPalette';
 import { PrintReportModal } from './components/PrintReportModal';
+import { QRCodeModal } from './components/QRCodeModal';
 import { StudyTask } from './types/tracker';
 import { Search, Filter, Layers, CheckCircle2, BookOpen, BarChart3, User, Calendar, Shield } from 'lucide-react';
 
@@ -44,6 +45,17 @@ function TrackerApp() {
   const [isTimerOpen, setIsTimerOpen] = useState(false);
   const [isCommandPaletteOpen, setIsCommandPaletteOpen] = useState(false);
   const [isPrintReportOpen, setIsPrintReportOpen] = useState(false);
+  const [qrModal, setQrModal] = useState<{
+    isOpen: boolean;
+    url: string;
+    title?: string;
+    weekNumber?: number;
+  }>({
+    isOpen: false,
+    url: 'https://nurullahxx1.github.io/controlhub/',
+    title: 'ControlHub - 4. Hafta Projesi',
+    weekNumber: 4
+  });
 
   // Overview week filters
   const [overviewSearch, setOverviewSearch] = useState('');
@@ -239,6 +251,14 @@ function TrackerApp() {
                     week={week}
                     onSelectWeek={(num) => setSelectedWeek(num)}
                     onQuickAdd={(num) => handleOpenNewTask(num)}
+                    onOpenQr={(url, title, weekNum) =>
+                      setQrModal({
+                        isOpen: true,
+                        url,
+                        title: title || `${weekNum}. Hafta Projesi`,
+                        weekNumber: weekNum
+                      })
+                    }
                   />
                 ))}
               </div>
@@ -305,6 +325,15 @@ function TrackerApp() {
       <PrintReportModal
         isOpen={isPrintReportOpen}
         onClose={() => setIsPrintReportOpen(false)}
+      />
+
+      {/* Global QR Code Modal */}
+      <QRCodeModal
+        isOpen={qrModal.isOpen}
+        onClose={() => setQrModal((prev) => ({ ...prev, isOpen: false }))}
+        url={qrModal.url}
+        title={qrModal.title}
+        weekNumber={qrModal.weekNumber}
       />
 
       {/* Footer */}

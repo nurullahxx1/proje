@@ -1,18 +1,20 @@
 import React from 'react';
 import { useTracker } from '../context/TrackerContext';
 import { WeekMeta } from '../types/tracker';
-import { Plus, ChevronRight, ExternalLink, Gamepad2 } from 'lucide-react';
+import { Plus, ChevronRight, ExternalLink, Gamepad2, Globe, QrCode } from 'lucide-react';
 
 interface WeeklyCardProps {
   week: WeekMeta;
   onSelectWeek: (weekNumber: number) => void;
   onQuickAdd: (weekNumber: number) => void;
+  onOpenQr?: (url: string, title?: string, weekNumber?: number) => void;
 }
 
 export const WeeklyCard: React.FC<WeeklyCardProps> = ({
   week,
   onSelectWeek,
-  onQuickAdd
+  onQuickAdd,
+  onOpenQr
 }) => {
   const { getWeekTasks, getWeekStatus, getWeekHours } = useTracker();
 
@@ -21,10 +23,11 @@ export const WeeklyCard: React.FC<WeeklyCardProps> = ({
   const hours = getWeekHours(week.weekNumber);
   const hasCustomTitle = Boolean(week.title && week.title.trim() !== `${week.weekNumber}. Hafta`);
   
-  // Direct resource link (Drive or Live Project like Vercel game)
+  // Direct resource link (Drive, Live Project like Vercel game, or ControlHub with QR)
   const resourceUrl = week.driveLink || tasks.find((t) => Boolean(t.link))?.link;
   const isDrive = resourceUrl ? resourceUrl.includes('drive.google.com') : false;
   const isGameProject = resourceUrl ? (resourceUrl.includes('nurullahoyunlarr') || resourceUrl.includes('vercel.app')) : false;
+  const isControlHub = resourceUrl ? (resourceUrl.includes('controlhub') || resourceUrl.includes('github.io')) : false;
 
   const statusColor =
     status === 'Tamamlandı'
@@ -116,7 +119,34 @@ export const WeeklyCard: React.FC<WeeklyCardProps> = ({
           </a>
         )}
 
-        {resourceUrl && !isDrive && !isGameProject && (
+        {resourceUrl && isControlHub && (
+          <div className="mt-3 flex flex-wrap items-center gap-1.5" onClick={(e) => e.stopPropagation()}>
+            <a
+              href={resourceUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              title="ControlHub web uygulamasını aç"
+              className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold text-teal-700 hover:text-teal-800 bg-teal-50 hover:bg-teal-100 dark:text-teal-300 dark:bg-teal-950/60 dark:hover:bg-teal-900/60 border border-teal-200/80 dark:border-teal-800 transition-colors shadow-2xs"
+            >
+              <Globe className="w-3.5 h-3.5 shrink-0 text-teal-600 dark:text-teal-400" />
+              <span>ControlHub</span>
+              <ExternalLink className="w-3 h-3 ml-0.5 opacity-70" />
+            </a>
+            {onOpenQr && (
+              <button
+                type="button"
+                onClick={() => onOpenQr(resourceUrl, 'ControlHub - 4. Hafta Projesi', week.weekNumber)}
+                title="Mobil QR Kodunu Görüntüle ve İndir"
+                className="inline-flex items-center gap-1 px-2 py-1 rounded-lg text-xs font-semibold text-teal-700 hover:text-teal-900 bg-teal-100/80 hover:bg-teal-200/90 dark:text-teal-200 dark:bg-teal-900/60 dark:hover:bg-teal-800/70 border border-teal-300/80 dark:border-teal-700 transition-colors shadow-2xs cursor-pointer"
+              >
+                <QrCode className="w-3.5 h-3.5" />
+                <span>QR Kod</span>
+              </button>
+            )}
+          </div>
+        )}
+
+        {resourceUrl && !isDrive && !isGameProject && !isControlHub && (
           <a
             href={resourceUrl}
             target="_blank"

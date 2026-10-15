@@ -49,6 +49,7 @@ export const WeeklyMatrix: React.FC<WeeklyMatrixProps> = ({ onSelectWeek }) => {
           const hasResource = Boolean(resUrl);
           const isDrive = resUrl ? resUrl.includes('drive.google.com') : false;
           const isGame = resUrl ? (resUrl.includes('nurullahoyunlarr') || resUrl.includes('vercel.app')) : false;
+          const isControlHub = resUrl ? (resUrl.includes('controlhub') || resUrl.includes('github.io')) : false;
 
           let bgClass = 'bg-stone-50 dark:bg-stone-800/60 text-stone-700 dark:text-stone-300 border border-stone-200/90 dark:border-stone-700/60 hover:border-red-400 hover:bg-stone-100/90 dark:hover:bg-stone-800 hover:-translate-y-0.5';
           if (status === 'Tamamlandı') {
@@ -57,7 +58,13 @@ export const WeeklyMatrix: React.FC<WeeklyMatrixProps> = ({ onSelectWeek }) => {
             bgClass = 'bg-amber-500 text-white border-transparent hover:bg-amber-600 shadow-xs hover:-translate-y-0.5';
           }
 
-          const resourceLabel = isDrive ? 'Drive Dökümanı Mevcut' : isGame ? 'Canlı Oyun / Proje Mevcut' : 'Bağlantı Mevcut';
+          const resourceLabel = isDrive
+            ? 'Drive Dökümanı Mevcut'
+            : isGame
+            ? 'Canlı Oyun / Proje Mevcut'
+            : isControlHub
+            ? 'ControlHub Web Projesi & QR Kod'
+            : 'Bağlantı Mevcut';
 
           return (
             <button
@@ -80,6 +87,8 @@ export const WeeklyMatrix: React.FC<WeeklyMatrixProps> = ({ onSelectWeek }) => {
                         ? 'bg-blue-500 dark:bg-blue-300'
                         : isGame
                         ? 'bg-purple-500 dark:bg-purple-300'
+                        : isControlHub
+                        ? 'bg-teal-500 dark:bg-teal-300'
                         : 'bg-emerald-500 dark:bg-emerald-300'
                     }`}
                     title={resourceLabel}

@@ -5,13 +5,15 @@ export const INITIAL_WEEKS: WeekMeta[] = Array.from({ length: 38 }, (_, i) => {
   const weekNum = i + 1;
   let driveLink: string | undefined = undefined;
 
-  // 1. ve 2. Hafta için Google Drive, 3. Hafta için Vercel oyun/proje bağlantısı
+  // 1. ve 2. Hafta için Google Drive, 3. Hafta için Vercel oyun/proje bağlantısı, 4. Hafta için ControlHub ve QR Kod
   if (weekNum === 1) {
     driveLink = 'https://drive.google.com/drive/folders/1WddXWYzBecZYU-YTn1toEKjxvcbhP-0E?usp=sharing';
   } else if (weekNum === 2) {
     driveLink = 'https://drive.google.com/drive/folders/17U0tZzu9BdqJHaWGGqXnLqSavuEQabeI?usp=sharing';
   } else if (weekNum === 3) {
     driveLink = 'https://nurullahoyunlarr.vercel.app/';
+  } else if (weekNum === 4) {
+    driveLink = 'https://nurullahxx1.github.io/controlhub/';
   }
 
   return {
@@ -60,6 +62,19 @@ export const INITIAL_TASKS: StudyTask[] = [
     hours: 4.0,
     description: '3. haftaya ait geliştirilen web tabanlı oyun projeleri ve canlı yayınlanan Vercel uygulaması.\nBağlantıya tıklayarak projeyi doğrudan görüntüleyebilir ve oyunları deneyimleyebilirsiniz.',
     link: 'https://nurullahoyunlarr.vercel.app/',
+    status: 'Devam ediyor',
+    category: 'Proje',
+    createdAt: new Date().toISOString()
+  },
+  {
+    id: 'task-week4-controlhub-project',
+    weekNumber: 4,
+    title: '4. Hafta ControlHub Web Projesi & Mobil QR Kod',
+    date: new Date().toISOString().slice(0, 10),
+    time: 'Web Projesi & Canlı Sistem',
+    hours: 4.0,
+    description: '4. haftaya ait geliştirilen ControlHub web uygulaması ve canlı kontrol paneli.\nDoğrudan bağlantı üzerinden veya özel QR kodunu telefonunuzla okutarak projeye anında erişebilirsiniz.',
+    link: 'https://nurullahxx1.github.io/controlhub/',
     status: 'Devam ediyor',
     category: 'Proje',
     createdAt: new Date().toISOString()

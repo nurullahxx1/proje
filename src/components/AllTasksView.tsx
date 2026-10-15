@@ -2,7 +2,8 @@ import React, { useState, useMemo } from 'react';
 import { useTracker } from '../context/TrackerContext';
 import { StudyTask, TaskStatus, TaskCategory } from '../types/tracker';
 import { formatExternalUrl } from '../utils/helpers';
-import { Search, Filter, Plus, ExternalLink, Edit3, Trash2, CheckCircle2, Clock, CircleDot, ArrowUpDown, FileSpreadsheet } from 'lucide-react';
+import { Search, Filter, Plus, ExternalLink, Edit3, Trash2, CheckCircle2, Clock, CircleDot, ArrowUpDown, FileSpreadsheet, Globe, QrCode } from 'lucide-react';
+import { QRCodeModal } from './QRCodeModal';
 
 interface AllTasksViewProps {
   onOpenTaskModal: (task?: StudyTask, defaultWeek?: number) => void;
@@ -21,6 +22,7 @@ export const AllTasksView: React.FC<AllTasksViewProps> = ({
   const [selectedStatusFilter, setSelectedStatusFilter] = useState<string>('all');
   const [selectedCategoryFilter, setSelectedCategoryFilter] = useState<string>('all');
   const [sortBy, setSortBy] = useState<'date-desc' | 'date-asc' | 'hours-desc' | 'week-asc'>('date-desc');
+  const [qrModalUrl, setQrModalUrl] = useState<{ url: string; title: string; weekNum: number } | null>(null);
 
   // Filtered tasks calculation
   const filteredTasks = useMemo(() => {
@@ -127,8 +129,8 @@ export const AllTasksView: React.FC<AllTasksViewProps> = ({
               onChange={(e) => setSelectedWeekFilter(e.target.value)}
               className="w-full px-3 py-2 text-xs sm:text-sm bg-stone-50 dark:bg-stone-800 border border-stone-200 dark:border-stone-700 rounded-lg text-stone-900 dark:text-stone-100 focus:outline-none focus:ring-1 focus:ring-stone-400"
             >
-              <option value="all">Tüm Haftalar (1 - 30)</option>
-              {Array.from({ length: 30 }, (_, i) => i + 1).map((w) => (
+              <option value="all">Tüm Haftalar (1 - 38)</option>
+              {Array.from({ length: 38 }, (_, i) => i + 1).map((w) => (
                 <option key={w} value={w}>
                   {w}. Hafta
                 </option>
@@ -333,6 +335,31 @@ export const AllTasksView: React.FC<AllTasksViewProps> = ({
                         <span>Google Drive Klasörünü Aç</span>
                         <ExternalLink className="w-3 h-3 shrink-0 opacity-70 group-hover/drivelink:opacity-100" />
                       </a>
+                    ) : (task.link.includes('controlhub') || task.link.includes('github.io')) ? (
+                      <div className="flex flex-wrap items-center gap-2">
+                        <a
+                          href={formatExternalUrl(task.link)}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-semibold text-teal-700 bg-teal-50 hover:bg-teal-100 dark:text-teal-300 dark:bg-teal-950/60 dark:hover:bg-teal-900/60 border border-teal-200 dark:border-teal-800 rounded-lg transition-colors"
+                        >
+                          <Globe className="w-3.5 h-3.5 shrink-0 text-teal-600 dark:text-teal-400" />
+                          <span>ControlHub Projesini Aç</span>
+                          <ExternalLink className="w-3 h-3 shrink-0 opacity-70" />
+                        </a>
+                        <button
+                          type="button"
+                          onClick={() => setQrModalUrl({
+                            url: formatExternalUrl(task.link),
+                            title: 'ControlHub - 4. Hafta Projesi',
+                            weekNum: task.weekNumber
+                          })}
+                          className="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-semibold text-teal-700 hover:text-teal-900 bg-teal-100/80 hover:bg-teal-200/90 dark:text-teal-200 dark:bg-teal-900/60 dark:hover:bg-teal-800/70 border border-teal-300 dark:border-teal-700 rounded-lg transition-colors cursor-pointer"
+                        >
+                          <QrCode className="w-3.5 h-3.5" />
+                          <span>QR Kodunu Gör</span>
+                        </button>
+                      </div>
                     ) : (
                       <a
                         href={formatExternalUrl(task.link)}
@@ -383,6 +410,17 @@ export const AllTasksView: React.FC<AllTasksViewProps> = ({
             </div>
           ))}
         </div>
+      )}
+
+      {/* QR Code Modal for Task Links */}
+      {qrModalUrl && (
+        <QRCodeModal
+          isOpen={Boolean(qrModalUrl)}
+          onClose={() => setQrModalUrl(null)}
+          url={qrModalUrl.url}
+          title={qrModalUrl.title}
+          weekNumber={qrModalUrl.weekNum}
+        />
       )}
     </div>
   );
